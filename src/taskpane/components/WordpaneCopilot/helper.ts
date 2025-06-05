@@ -150,15 +150,22 @@ export const askInternetQuestion = async (token: string, request: IMessageReques
 export const askCopilot = async (token: string, request: IMessageRequest): Promise<IMessage> => {
   localStorage.setItem("questionAsked", "true");
   try {
+    const copilot_mode = getCopilotMode(
+      request.isRefine ? "Custom Prompt" : request.action,
+      request.isRefine ? request.refineInstruction : request.instructionText
+    );
+    let url = "";
+    if (copilot_mode.includes("expand") || copilot_mode.includes("summarise")) {
+      url = "copilot/expanded_or_summarise";
+    } else {
+      url = "copilot";
+    }
     const response = await axios.post(
-      apiURL("copilot"),
+      apiURL(url),
       {
         input_text: request.highlightedText,
         extra_instructions: normalizeChatHistory(request.messages),
-        copilot_mode: getCopilotMode(
-          request.isRefine ? "Custom Prompt" : request.action,
-          request.isRefine ? request.refineInstruction : request.instructionText
-        ),
+        copilot_mode: copilot_mode,
         datasets: [],
         bid_id: request?.tenderBid?._id || "sharedState.object_id",
       },
