@@ -18,6 +18,7 @@ import MessageBox from "../MessageBox";
 import { customPrompts } from "./constants";
 import {
   askCopilot,
+  askCopilotExpandOrSummarise,
   askDiagram,
   askInternetQuestion,
   askLibraryChatQuestion,
@@ -235,6 +236,8 @@ const WordpaneCopilot = () => {
         const response = await askCopilot(tokenRef.current, request);
         setIsCustomPrompt(false);
         return response;
+      } else if (request.action === "Expand" || request.action === "Summarise") {
+        return await askCopilotExpandOrSummarise(tokenRef.current, request);
       } else {
         return await askCopilot(tokenRef.current, request);
       }

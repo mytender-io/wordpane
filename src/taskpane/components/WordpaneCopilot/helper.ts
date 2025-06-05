@@ -160,7 +160,51 @@ export const askCopilot = async (token: string, request: IMessageRequest): Promi
           request.isRefine ? request.refineInstruction : request.instructionText
         ),
         datasets: [],
-        bid_id: request?.tenderBid?._id || "sharedState.object_id",
+        bid_id: request?.tenderBid?._id || "",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        timeout: 30000,
+      }
+    );
+
+    return withId({
+      type: "text",
+      value: response.data,
+      createdBy: "bot",
+      action: request.action,
+      isRefine: request.isRefine,
+      request,
+    });
+  } catch (error) {
+    console.error("Error sending question:", error);
+    return withId({
+      type: "text",
+      value: "Message failed, please contact support...",
+      createdBy: "bot",
+      action: request.action,
+      isRefine: request.isRefine,
+      request,
+    });
+  }
+};
+
+export const askCopilotExpandOrSummarise = async (token: string, request: IMessageRequest): Promise<IMessage> => {
+  localStorage.setItem("questionAsked", "true");
+  try {
+    const response = await axios.post(
+      apiURL("copilot/expanded_or_summarise"),
+      {
+        input_text: request.highlightedText,
+        extra_instructions: normalizeChatHistory(request.messages),
+        copilot_mode: getCopilotMode(
+          request.isRefine ? "Custom Prompt" : request.action,
+          request.isRefine ? request.refineInstruction : request.instructionText
+        ),
+        datasets: [],
+        bid_id: request?.tenderBid?._id || "",
       },
       {
         headers: {
